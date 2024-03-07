@@ -1,17 +1,18 @@
+import './footer.css';
+
 function Footer() {
 	return (
-		<footer>
-			<p>Тут будет футер со всякой ерундой</p>
+		<footer className="footer">
 			<a
 				target="_blank"
 				rel="noreferrer"
-				href="https://icons8.com/icon/JrInpv4e05vK/windows-блокнот"
+				href="https://github.com/Pavel-Prokofev"
 			>
-				Windows-блокнот
+				Проект выполнил: Прокофьев&nbsp;П.В.
 			</a>
-			<span> иконка от </span>
+
 			<a target="_blank" rel="noreferrer" href="https://icons8.com">
-				Icons8
+				favicon взят с ресурса: Icons8
 			</a>
 		</footer>
 	);

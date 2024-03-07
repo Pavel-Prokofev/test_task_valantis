@@ -4,10 +4,12 @@ import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 
 import Layout from './pages/layout/layout';
 import Gallery from './components/gallery/gallery';
+import Filter from './components/filter/filter';
 import NotFound from './pages/notFound/notFound';
 
 import './App.css';
 import ApiValantis from './utils/api/apiValantis';
+import SeparationPazname from './utils/separationPazname';
 
 function App() {
 	const apiValantis = ApiValantis();
@@ -25,8 +27,12 @@ function App() {
 		/^(\/filter=(none|product|price|brand)&filterparam=([\wа-яё.\s&]+)\/[1-9]\d*)$/;
 
 	const [lastFilterFields, setLastFilterFields] = React.useState('');
-	const [actualItemsIdList, setActualItemsIdList] = React.useState([]);
+	// const [actualItemsIdList, setActualItemsIdList] = React.useState([]);
+	const actualItemsIdList = React.useRef([]);
+	const isActivePage = React.useRef(0);
+	const [actualPageList, setActualPageList] = React.useState([]);
 	const [isNotFound, setIsNotFound] = React.useState(true);
+	const [isPageCount, setIsPageCount] = React.useState(0);
 
 	// function log() {
 	// 	console.log(apiValantis.creatingAuthorizationString());
@@ -34,16 +40,22 @@ function App() {
 
 	// log();
 
-	const creatIdList = (pageNumber, itemsIdList) => {
+	// Формируем список id которые нужно запросить с бэка для отрисовки
+	const creatIdList = (pageNumber) => {
+		console.log(actualItemsIdList.current);
 		const idList = [];
-		if (Math.ceil(itemsIdList.length / 50) >= pageNumber) {
+		const pageCount = Math.ceil(actualItemsIdList.current.length / 50);
+		if (isPageCount !== pageCount) {
+			setIsPageCount(pageCount);
+		}
+		if (pageCount >= pageNumber) {
 			const startPoint = pageNumber * 50 - 50;
 			const endPoint =
-				pageNumber * 50 > itemsIdList.lenght
-					? itemsIdList.lenght
+				pageNumber * 50 > actualItemsIdList.current.lenght
+					? actualItemsIdList.current.lenght
 					: pageNumber * 50;
 			for (let i = startPoint; i < endPoint; i += 1) {
-				idList.push(itemsIdList[i]);
+				idList.push(actualItemsIdList.current[i]);
 			}
 		} else {
 			console.log('слишком мало итемов для этого номера страницы');
@@ -51,39 +63,53 @@ function App() {
 		return idList;
 	};
 
-	const databaseOldFilterQuery = (actualBody) => {
+	// Запрос при смене отображаемой страницы.
+	const databaseChangePageQuery = (actualBody) => {
 		console.log('фильтр не изменился', actualBody);
+
+		const { actionPage, pageNumber } = actualBody;
+		// Формируем список id которые нужно запросить с бэка для отрисовки
+		const idList = creatIdList(pageNumber);
+		if (idList.length) {
+			apiValantis
+				.getItems({ action: actionPage, params: { ids: idList } })
+				.then((result) => {
+					console.log(result.result.length, result.result);
+					const noRepetitionPage = [];
+					// Убираем повторы по id и пришедшего результата.
+					result.result.forEach((item) => {
+						if (!noRepetitionPage.some((elem) => elem.id === item.id)) {
+							noRepetitionPage.push(item);
+						}
+					});
+					console.log(noRepetitionPage.length, noRepetitionPage);
+					setActualPageList(noRepetitionPage);
+				})
+				.catch((err) =>
+					console.log(`При выполнении запрса произошла ошибка: ${err}`)
+				);
+		}
+		console.log(idList);
 	};
 
-	const databaseNewFilterQuery = (actualBody) => {
-		const { actionFilter, paramsFilter, actionPage, pageNumber } = actualBody;
-		console.log(actionPage, pageNumber);
+	// Запрос при смене фильтра.
+	const databaseChangeFilterQuery = (actualBody) => {
+		const { actionFilter, paramsFilter } = actualBody;
 		apiValantis
 			.getItems({ action: actionFilter, params: paramsFilter })
 			.then((res) => {
 				// Убираем дубли id из полученного списка.
 				const noRepetitionList = Array.from(new Set(res.result));
 				console.log(noRepetitionList.length);
-				// Записываем список в переменную, чтобы меная страницы без смены фильтра не совершать лишних запросов.
-				setActualItemsIdList(noRepetitionList);
+				// Записываем список в переменную, чтобы меняя страницы без смены фильтра не совершать лишних запросов.
+				actualItemsIdList.current = noRepetitionList;
 				if (!noRepetitionList.length) {
 					console.log('по данному запросу ничего не обнаружено');
-				} else {
-					// Формируем список id которые нужно запросить с бэка для отрисовки
-					const idList = creatIdList(pageNumber, noRepetitionList);
-					if (idList.length) {
-						apiValantis
-							.getItems({ action: actionPage, params: { ids: idList } })
-							.then((result) => {
-								console.log(result['result'].lenght, result.result);
-							})
-							.catch((err) =>
-								console.log(`При выполнении запрса произошла ошибка: ${err}`)
-							);
-					}
-					console.log(idList);
+					return Promise.reject(new Error('404'));
 				}
+				return Promise.resolve();
 			})
+			.then(() => databaseChangePageQuery(actualBody))
 			.catch((err) =>
 				console.log(`При выполнении запрса произошла ошибка: ${err}`)
 			);
@@ -92,38 +118,31 @@ function App() {
 	const actualizationLocation = () => {
 		// Тело запроса на бэк который мы ретурним.
 		const returningBody = {};
-		// Узнаём актуальный pathname и сразу декодируем для дальнейшей работы.
-		const actualLocation = decodeURI(location.pathname);
-		// Присваеваем переменной поле с фильтром и его параметром из pathname
-		const filterFields = actualLocation.split('/')[1];
-		// Узнаём актуальную страницу отображаемого результата поиска из pathname если он не указана то отображаем страницу 1 (перестраховка).
-		const actualPageNumber =
-			actualLocation.split('/')[2] &&
-			Number.isInteger(Number(actualLocation.split('/')[2]))
-				? Number(actualLocation.split('/')[2])
-				: 1;
+
+		// Определяем поле фильтрации для проверки. Определяем тип фильтра, параметр фильтра и номер актуальной страницы.
+		const { filterFields, filter, filterParam, actualPageNumber } =
+			SeparationPazname(location);
+
+		// Добавляем в посылаемый в запрос объект поля необходимые для отображения нужной страницы.
+		returningBody.actionPage = 'get_items';
+		returningBody.pageNumber = actualPageNumber;
 
 		// Проверяем изменился ли фольтр или его параметр и определяем, что с этим делать.
 		const hasChangedFilterFields = () => {
-			// Добавляем в посылаемый в запрос объект поля необходимые для отображения нужной страницы.
-			returningBody.actionPage = 'get_items';
-			returningBody.pageNumber = actualPageNumber;
 			setIsNotFound(false);
 			// Проверяем изменился ли фольтр или его параметр.
 			if (lastFilterFields !== filterFields || !actualItemsIdList.length) {
 				setLastFilterFields(filterFields);
-				databaseNewFilterQuery(returningBody);
+				isActivePage.current = actualPageNumber;
+				databaseChangeFilterQuery(returningBody);
 			} else {
-				databaseOldFilterQuery(returningBody);
+				isActivePage.current = actualPageNumber;
+				databaseChangePageQuery(returningBody);
 			}
 		};
 
 		// Проверяем соответствует ли поле фильтра в адресе нашему формату (перестраховка).
 		if (filterRegex.test(filterFields)) {
-			// Определяем тип фильтрации.
-			const filter = filterFields.split('&')[0].split('=')[1];
-			// Определяем параметр фильтрации.
-			const filterParam = filterFields.split('&')[1].split('=')[1];
 			// Проверяем соответствие параметра фильтрации её типу. Формируем параметры фильтрации для тела запроса на бэк.
 			if (filter === 'none' && filterParam === 'none') {
 				// Фильтр отсутствует: запрашиваем с бэка весь перечень.
@@ -158,7 +177,6 @@ function App() {
 
 	// Следим за изменением адресной строки и предпринимаем соответствующие действия, проверяя формат строки.
 	React.useEffect(() => {
-		console.log(location.pathname);
 		const actualLocation = decodeURI(location.pathname);
 		if (actualLocation === '/') {
 			// Если мы только вошли и ничего ещё не задавали то говорим, что отображаем всё без фильтра, с первой страницы.
@@ -178,11 +196,25 @@ function App() {
 	return (
 		<div className="App">
 			<Routes>
-				<Route path="/" element={<Layout isNotFound={isNotFound} />}>
-					<Route path="/:filter" element={<Gallery />}>
-						<Route path="/:filter/:page" element={<Gallery />} />
+				{!isNotFound && (
+					<Route path="/" element={<Layout />}>
+						<Route
+							path="/:filter"
+							element={
+								<Filter
+									lastFilterFields={lastFilterFields}
+									isPageCount={isPageCount}
+									isActivePage={isActivePage.current}
+								/>
+							}
+						>
+							<Route
+								path="/:filter/:page"
+								element={<Gallery actualPageList={actualPageList} />}
+							/>
+						</Route>
 					</Route>
-				</Route>
+				)}
 				<Route path="/*" element={<NotFound />} />
 			</Routes>
 		</div>

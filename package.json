@@ -35,7 +35,8 @@
 		"rules": {
 			"dot-notation": 0,
 			"react/prop-types": 0,
-			"react-hooks/exhaustive-deps": 0
+			"react-hooks/exhaustive-deps": 0,
+			"no-nested-ternary": 0
 		}
 	},
 	"browserslist": {

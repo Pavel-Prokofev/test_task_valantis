@@ -1,0 +1,22 @@
+.card {
+	max-inline-size: 260px;
+	background-color: var(--card-background-color);
+	border-radius: 15px;
+}
+
+.card__img {
+	inline-size: 60%;
+	margin: 10% 20%;
+	aspect-ratio: 1/1;
+}
+
+.card__text-box {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 10px 15px 10%;
+}
+
+.card__title {
+	margin: 0;
+}

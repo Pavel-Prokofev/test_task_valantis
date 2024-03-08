@@ -1,6 +1,5 @@
 import React from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-// import React from 'react';
 
 import Layout from './pages/layout/layout';
 import Gallery from './components/gallery/gallery';
@@ -8,6 +7,7 @@ import Filter from './components/filter/filter';
 import NotFound from './pages/notFound/notFound';
 
 import './App.css';
+
 import ApiValantis from './utils/api/apiValantis';
 import SeparationPazname from './utils/separationPazname';
 
@@ -18,31 +18,23 @@ function App() {
 	const navigate = useNavigate();
 
 	const filterRegex =
-		/^(filter=(none|product|price|brand)&filterparam=([\wа-яё.\s&]+))$/;
+		/^(filter=(none|product|price|brand)&filterparam=([\wа-яёА-ЯЁ.\s&]+))$/;
 	const priseRegex = /^\d+(\.\d*)?$/;
 
 	const onlyFilterRegex =
-		/^(\/filter=(none|product|price|brand)&filterparam=([\wа-яё.\s&]+)\/?)$/;
+		/^(\/filter=(none|product|price|brand)&filterparam=([\wа-яёА-ЯЁ.\s&]+)\/?)$/;
 	const normalPathnameRegex =
-		/^(\/filter=(none|product|price|brand)&filterparam=([\wа-яё.\s&]+)\/[1-9]\d*)$/;
+		/^(\/filter=(none|product|price|brand)&filterparam=([\wа-яёА-ЯЁ.\s&]+)\/[1-9]\d*)$/;
 
 	const [lastFilterFields, setLastFilterFields] = React.useState('');
-	// const [actualItemsIdList, setActualItemsIdList] = React.useState([]);
 	const actualItemsIdList = React.useRef([]);
 	const isActivePage = React.useRef(0);
 	const [actualPageList, setActualPageList] = React.useState([]);
 	const [isNotFound, setIsNotFound] = React.useState(true);
 	const [isPageCount, setIsPageCount] = React.useState(0);
 
-	// function log() {
-	// 	console.log(apiValantis.creatingAuthorizationString());
-	// }
-
-	// log();
-
 	// Формируем список id которые нужно запросить с бэка для отрисовки
 	const creatIdList = (pageNumber) => {
-		console.log(actualItemsIdList.current);
 		const idList = [];
 		const pageCount = Math.ceil(actualItemsIdList.current.length / 50);
 		if (isPageCount !== pageCount) {
@@ -65,8 +57,6 @@ function App() {
 
 	// Запрос при смене отображаемой страницы.
 	const databaseChangePageQuery = (actualBody) => {
-		console.log('фильтр не изменился', actualBody);
-
 		const { actionPage, pageNumber } = actualBody;
 		// Формируем список id которые нужно запросить с бэка для отрисовки
 		const idList = creatIdList(pageNumber);
@@ -74,7 +64,6 @@ function App() {
 			apiValantis
 				.getItems({ action: actionPage, params: { ids: idList } })
 				.then((result) => {
-					console.log(result.result.length, result.result);
 					const noRepetitionPage = [];
 					// Убираем повторы по id и пришедшего результата.
 					result.result.forEach((item) => {
@@ -82,14 +71,19 @@ function App() {
 							noRepetitionPage.push(item);
 						}
 					});
-					console.log(noRepetitionPage.length, noRepetitionPage);
 					setActualPageList(noRepetitionPage);
 				})
-				.catch((err) =>
-					console.log(`При выполнении запрса произошла ошибка: ${err}`)
-				);
+				.catch((err) => {
+					console.log(`При выполнении запрса произошла ошибка: ${err}`);
+					if (Number(String(err).charAt(0)) === 5) {
+						databaseChangePageQuery(actualBody);
+					}
+				});
+		} else {
+			console.log(
+				'По данным настройкам фильтрации найдено слишком мало товаров, для вывода на страницу с настолько большим номером =)'
+			);
 		}
-		console.log(idList);
 	};
 
 	// Запрос при смене фильтра.
@@ -100,19 +94,22 @@ function App() {
 			.then((res) => {
 				// Убираем дубли id из полученного списка.
 				const noRepetitionList = Array.from(new Set(res.result));
-				console.log(noRepetitionList.length);
 				// Записываем список в переменную, чтобы меняя страницы без смены фильтра не совершать лишних запросов.
 				actualItemsIdList.current = noRepetitionList;
 				if (!noRepetitionList.length) {
-					console.log('по данному запросу ничего не обнаружено');
 					return Promise.reject(new Error('404'));
 				}
 				return Promise.resolve();
 			})
 			.then(() => databaseChangePageQuery(actualBody))
-			.catch((err) =>
-				console.log(`При выполнении запрса произошла ошибка: ${err}`)
-			);
+			.catch((err) => {
+				console.log(`При выполнении запрса произошла ошибка: ${err}`);
+				if (Number(String(err).charAt(0)) === 5) {
+					databaseChangeFilterQuery(actualBody);
+				} else {
+					console.log('по данному запросу ничего не обнаружено');
+				}
+			});
 	};
 
 	const actualizationLocation = () => {
@@ -122,6 +119,8 @@ function App() {
 		// Определяем поле фильтрации для проверки. Определяем тип фильтра, параметр фильтра и номер актуальной страницы.
 		const { filterFields, filter, filterParam, actualPageNumber } =
 			SeparationPazname(location);
+
+		console.log(filterParam);
 
 		// Добавляем в посылаемый в запрос объект поля необходимые для отображения нужной страницы.
 		returningBody.actionPage = 'get_items';
@@ -189,6 +188,7 @@ function App() {
 			setIsNotFound(false);
 			actualizationLocation();
 		} else {
+			console.log('ХРЕНОТЕНЬ');
 			setIsNotFound(true);
 		}
 	}, [location.pathname]);

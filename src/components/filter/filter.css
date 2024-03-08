@@ -41,32 +41,3 @@
 	font-size: 18px;
 	font-weight: 600;
 }
-
-.page-list {
-	list-style: none;
-	margin: 0;
-	padding: 30px;
-	display: flex;
-	justify-content: center;
-	flex-wrap: wrap;
-	gap: 10px;
-}
-
-.page-list__link {
-	text-decoration: none;
-	font-weight: 500;
-	padding: 2px;
-	color: var(--link-color, #000);
-	cursor: pointer;
-}
-
-.page-list__link:visited {
-	color: var(--link-visited-color);
-}
-
-.page-list__link_active {
-	pointer-events: none;
-	font-weight: 700;
-	outline: 1px solid var(--link-color);
-	border-radius: 2px;
-}

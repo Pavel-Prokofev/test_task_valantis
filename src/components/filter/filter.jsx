@@ -1,14 +1,18 @@
 import React from 'react';
-import { Outlet, useNavigate, NavLink } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+
+import Pagination from '../pagination/pagination';
 
 import './filter.css';
 
+import SeparationPazname from '../../utils/separationPazname';
+
 function Filter({ lastFilterFields, isPageCount, isActivePage }) {
 	const navigate = useNavigate();
+	const location = useLocation();
 
 	const [filterTypeValue, setFilterTypeValue] = React.useState('');
 	const [filterParamValue, setFilterParamValue] = React.useState('');
-	const [actualArrPageCount, setActualArrPageCount] = React.useState([]);
 
 	const handleChange = (evt) => {
 		if (evt.target.name === 'filter-type') {
@@ -27,21 +31,11 @@ function Filter({ lastFilterFields, isPageCount, isActivePage }) {
 	};
 
 	React.useEffect(() => {
-		// Определяем тип фильтрации.
-		const filter = lastFilterFields.split('&')[0].split('=')[1];
-		// Определяем параметр фильтрации.
-		const filterParam = lastFilterFields.split('&')[1].split('=')[1];
+		const { filter, filterParam } = SeparationPazname(location);
+
 		setFilterTypeValue(filter);
 		setFilterParamValue(filterParam);
 	}, [lastFilterFields]);
-
-	React.useEffect(() => {
-		const arrPageCount = [];
-		for (let i = 0; i < isPageCount; i += 1) {
-			arrPageCount[i] = i + 1;
-		}
-		setActualArrPageCount(arrPageCount);
-	}, [isPageCount, lastFilterFields]);
 
 	return (
 		<>
@@ -93,85 +87,17 @@ function Filter({ lastFilterFields, isPageCount, isActivePage }) {
 				</button>
 			</form>
 
-			{/* Пагинация */}
-			{actualArrPageCount.length ? (
-				<ul className="page-list">
-					{actualArrPageCount.length <= 10 ? (
-						actualArrPageCount.map((pageNum) => (
-							<li key={pageNum}>
-								<NavLink
-									to={`/${lastFilterFields}/${String(pageNum)}`}
-									className={({ isActive }) =>
-										`${isActive ? 'page-list__link page-list__link_active' : 'page-list__link'}`
-									}
-								>
-									{pageNum}
-								</NavLink>
-							</li>
-						))
-					) : (
-						<>
-							<li>
-								<NavLink
-									to={`/${lastFilterFields}/1`}
-									className={({ isActive }) =>
-										`${isActive ? 'page-list__link page-list__link_active' : 'page-list__link'}`
-									}
-								>
-									1
-								</NavLink>
-							</li>
-
-							{isActivePage > 4 && (
-								<li>
-									<span className="page-list__link">...</span>
-								</li>
-							)}
-
-							{actualArrPageCount.map(
-								(pageNum) =>
-									pageNum !== 1 &&
-									pageNum !== actualArrPageCount.length &&
-									((isActivePage - pageNum < 3 && isActivePage > pageNum) ||
-										(pageNum - isActivePage < 3 && isActivePage < pageNum) ||
-										isActivePage === pageNum) && (
-										<li key={pageNum}>
-											<NavLink
-												to={`/${lastFilterFields}/${String(pageNum)}`}
-												className={({ isActive }) =>
-													`${isActive ? 'page-list__link page-list__link_active' : 'page-list__link'}`
-												}
-											>
-												{pageNum}
-											</NavLink>
-										</li>
-									)
-							)}
-
-							{actualArrPageCount.length - isActivePage > 3 && (
-								<li>
-									<span className="page-list__link">...</span>
-								</li>
-							)}
-
-							<li>
-								<NavLink
-									to={`/${lastFilterFields}/${String(actualArrPageCount[actualArrPageCount.length - 1])}`}
-									className={({ isActive }) =>
-										`${isActive ? 'page-list__link page-list__link_active' : 'page-list__link'}`
-									}
-								>
-									{actualArrPageCount[actualArrPageCount.length - 1]}
-								</NavLink>
-							</li>
-						</>
-					)}
-				</ul>
-			) : (
-				<span>По вашему запросу ничего не обнаружено</span>
-			)}
-
+			<Pagination
+				isPageCount={isPageCount}
+				lastFilterFields={lastFilterFields}
+				isActivePage={isActivePage}
+			/>
 			<Outlet />
+			<Pagination
+				isPageCount={isPageCount}
+				lastFilterFields={lastFilterFields}
+				isActivePage={isActivePage}
+			/>
 		</>
 	);
 }

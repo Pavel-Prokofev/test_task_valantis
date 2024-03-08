@@ -10,10 +10,19 @@ function separationPazname(location) {
 			? Number(actualLocation.split('/')[2])
 			: 1;
 
+	const filterFieldsArr = filterFields.split('&');
+
+	// filterFieldsArr.splice(0,1).join('&');
+	//
+
+	console.log(filterFieldsArr.slice(1).join('&'));
+
 	// Определяем тип фильтрации.
 	const filter = filterFields.split('&')[0].split('=')[1];
+
 	// Определяем параметр фильтрации.
-	const filterParam = filterFields.split('&')[1].split('=')[1];
+	// const filterParam = filterFields.split('&')[1].split('=')[1];
+	const filterParam = filterFieldsArr.slice(1).join('&').split('=')[1];
 
 	return {
 		actualLocation,

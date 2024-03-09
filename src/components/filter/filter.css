@@ -3,6 +3,7 @@
 	flex-wrap: wrap;
 	justify-content: center;
 	gap: 20px;
+	padding-block: 30px;
 }
 
 :is(.filter__type-lable, .filter__param-lable) {

@@ -29,13 +29,13 @@ function Pagination({ isPageCount = 0, lastFilterFields, isActivePage = 1 }) {
 		setActualArrPageCount(arrPageCount);
 	}, [isPageCount, lastFilterFields]);
 
-	return (
-		<article className="pagination">
-			<ul className="pagination__list">
-				{/* Проверяем есть ли вообще что выводить */}
-				{actualArrPageCount.length ? (
-					// Если страниц меньше 10ти выводим весь список.
-					actualArrPageCount.length <= 10 ? (
+	// Проверяем есть ли вообще что выводить
+	if (actualArrPageCount.length) {
+		return (
+			<article className="pagination">
+				<ul className="pagination__list">
+					{/* Если страниц меньше 10ти выводим весь список. */}
+					{actualArrPageCount.length <= 10 ? (
 						actualArrPageCount.map((pageNum) => (
 							<PaginationLi
 								key={pageNum}
@@ -81,17 +81,11 @@ function Pagination({ isPageCount = 0, lastFilterFields, isActivePage = 1 }) {
 								lastFilterFields={lastFilterFields}
 							/>
 						</>
-					)
-				) : (
-					<li>
-						<span className="pagination__text">
-							По вашему запросу ничего не обнаружено
-						</span>
-					</li>
-				)}
-			</ul>
-		</article>
-	);
+					)}
+				</ul>{' '}
+			</article>
+		);
+	}
 }
 
 export default Pagination;

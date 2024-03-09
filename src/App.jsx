@@ -92,7 +92,7 @@ function App() {
 
 	// Запрос при смене фильтра.
 	const databaseChangeFilterQuery = (actualBody) => {
-		const { actionFilter, paramsFilter } = actualBody;
+		const { actionFilter, paramsFilter, pageNumber } = actualBody;
 		apiValantis
 			.getItems({ action: actionFilter, params: paramsFilter })
 			.then((res) => {
@@ -112,6 +112,11 @@ function App() {
 					databaseChangeFilterQuery(actualBody);
 				} else {
 					console.log('по данному запросу ничего не обнаружено');
+					setActualPageList([]);
+					setIsPageCount(0);
+					if (Number(pageNumber) !== 1) {
+						setIsNotFound(true);
+					}
 				}
 			});
 	};

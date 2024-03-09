@@ -2,10 +2,11 @@ import React from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 
 import Layout from './pages/layout/layout';
-import Gallery from './components/gallery/gallery';
 import Filter from './components/filter/filter';
-import NotFound from './pages/notFound/notFound';
+import Gallery from './components/gallery/gallery';
+import Product from './components/product/product';
 import Loader from './components/loader/loader';
+import NotFound from './pages/notFound/notFound';
 
 import './App.css';
 
@@ -21,19 +22,51 @@ function App() {
 	const filterRegex =
 		/^(filter=(none|product|price|brand)&filterparam=([\wа-яёА-ЯЁ.\s&]+))$/;
 	const priseRegex = /^\d+(\.\d*)?$/;
-
 	const onlyFilterRegex =
 		/^(\/filter=(none|product|price|brand)&filterparam=([\wа-яёА-ЯЁ.\s&]+)\/?)$/;
 	const normalPathnameRegex =
 		/^(\/filter=(none|product|price|brand)&filterparam=([\wа-яёА-ЯЁ.\s&]+)\/[1-9]\d*)$/;
+	const idRegex =
+		/^(\/([\dabcdef]{8}-[\dabcdef]{4}-[\dabcdef]{4}-[\dabcdef]{4}-[\dabcdef]{12})\/?)$/;
 
 	const [lastFilterFields, setLastFilterFields] = React.useState('');
 	const actualItemsIdList = React.useRef([]);
 	const isActivePage = React.useRef(0);
+	const prescientPathname = React.useRef('/');
 	const [actualPageList, setActualPageList] = React.useState([]);
 	const [isNotFound, setIsNotFound] = React.useState(true);
 	const [isPageCount, setIsPageCount] = React.useState(0);
 	const [isLoaderOpen, setIsLoaderOpen] = React.useState(true);
+	const [isDisplayTheProduct, setIsDisplayTheProduct] = React.useState(false);
+	const [theProduct, setTheProduct] = React.useState('');
+
+	// Запрос конкретного товара.
+	const databaseTheProduct = (id) => {
+		apiValantis
+			.getItems({ action: 'get_items', params: { ids: [id] } })
+			.then((result) => {
+				// Проверяем что пришло.
+				if (!result.result.length) {
+					return Promise.reject(new Error('404'));
+				}
+
+				setIsDisplayTheProduct(true);
+				setTheProduct(result.result[0]);
+
+				setIsNotFound(false);
+				setIsLoaderOpen(false);
+				return Promise.resolve();
+			})
+			.catch((err) => {
+				console.log(`При выполнении запрса произошла ошибка: ${err}`);
+				if (Number(String(err).charAt(0)) === 5) {
+					databaseTheProduct(id);
+				} else {
+					setIsNotFound(true);
+					setIsLoaderOpen(false);
+				}
+			});
+	};
 
 	// Формируем список id которые нужно запросить с бэка для отрисовки
 	const creatIdList = (pageNumber) => {
@@ -145,9 +178,11 @@ function App() {
 			if (lastFilterFields !== filterFields || !actualItemsIdList.length) {
 				setLastFilterFields(filterFields);
 				isActivePage.current = actualPageNumber;
+				prescientPathname.current = location.pathname;
 				databaseChangeFilterQuery(returningBody);
 			} else {
 				isActivePage.current = actualPageNumber;
+				prescientPathname.current = location.pathname;
 				databaseChangePageQuery(returningBody);
 			}
 		};
@@ -191,6 +226,7 @@ function App() {
 	// Следим за изменением адресной строки и предпринимаем соответствующие действия, проверяя формат строки.
 	React.useEffect(() => {
 		setIsLoaderOpen(true);
+		setIsDisplayTheProduct(false);
 		const actualLocation = decodeURI(location.pathname);
 		if (actualLocation === '/') {
 			// Если мы только вошли и ничего ещё не задавали то говорим, что отображаем всё без фильтра, с первой страницы.
@@ -202,6 +238,9 @@ function App() {
 			// Если адрес в строке корректен, то начинаем с ним работать.
 			setIsNotFound(false);
 			actualizationLocation();
+		} else if (idRegex.test(actualLocation)) {
+			// Обрезаем лишние /.
+			databaseTheProduct(actualLocation.replace(/^\//, '').replace(/\/$/, ''));
 		} else {
 			setIsNotFound(true);
 			setIsLoaderOpen(false);
@@ -214,21 +253,33 @@ function App() {
 			<Routes>
 				{!isNotFound && (
 					<Route path="/" element={<Layout />}>
-						<Route
-							path="/:filter"
-							element={
-								<Filter
-									lastFilterFields={lastFilterFields}
-									isPageCount={isPageCount}
-									isActivePage={isActivePage.current}
-								/>
-							}
-						>
+						{!isDisplayTheProduct ? (
 							<Route
-								path="/:filter/:page"
-								element={<Gallery actualPageList={actualPageList} />}
+								path="/:filter"
+								element={
+									<Filter
+										lastFilterFields={lastFilterFields}
+										isPageCount={isPageCount}
+										isActivePage={isActivePage.current}
+									/>
+								}
+							>
+								<Route
+									path="/:filter/:page"
+									element={<Gallery actualPageList={actualPageList} />}
+								/>
+							</Route>
+						) : (
+							<Route
+								path="/:productId"
+								element={
+									<Product
+										theProduct={theProduct}
+										prescientPathname={prescientPathname.current}
+									/>
+								}
 							/>
-						</Route>
+						)}
 					</Route>
 				)}
 				<Route path="/*" element={<NotFound />} />

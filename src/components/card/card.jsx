@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 import './card.css';
 import treasures from '../../images/treasures.png';
 
@@ -11,13 +13,15 @@ function Card({ item = {} }) {
 
 	return (
 		<li className="card">
-			<img src={treasures} alt="сундук со сказками" className="card__img" />
-			<div className="card__text-box">
-				<h3 className="card__title">{product}</h3>
-				<span>id: {id}</span>
-				{brand && <span>Бренд: {brand}</span>}
-				<span>Цена: {price}</span>
-			</div>
+			<Link to={`/${id}`} className="card__link">
+				<img src={treasures} alt="сундук со сказками" className="card__img" />
+				<div className="card__text-box">
+					<h3 className="card__title">{product}</h3>
+					<span>id: {id}</span>
+					{brand && <span>Бренд: {brand}</span>}
+					<span>Цена: {price}</span>
+				</div>
+			</Link>
 		</li>
 	);
 }

@@ -5,6 +5,7 @@ import Layout from './pages/layout/layout';
 import Gallery from './components/gallery/gallery';
 import Filter from './components/filter/filter';
 import NotFound from './pages/notFound/notFound';
+import Loader from './components/loader/loader';
 
 import './App.css';
 
@@ -32,6 +33,7 @@ function App() {
 	const [actualPageList, setActualPageList] = React.useState([]);
 	const [isNotFound, setIsNotFound] = React.useState(true);
 	const [isPageCount, setIsPageCount] = React.useState(0);
+	const [isLoaderOpen, setIsLoaderOpen] = React.useState(true);
 
 	// Формируем список id которые нужно запросить с бэка для отрисовки
 	const creatIdList = (pageNumber) => {
@@ -53,6 +55,7 @@ function App() {
 			// Перестраховка.
 			console.log('слишком мало итемов для этого номера страницы');
 			setIsNotFound(true);
+			setIsLoaderOpen(false);
 		}
 		return idList;
 	};
@@ -75,6 +78,7 @@ function App() {
 					});
 					setActualPageList(noRepetitionPage);
 					setIsNotFound(false);
+					setIsLoaderOpen(false);
 				})
 				.catch((err) => {
 					console.log(`При выполнении запрса произошла ошибка: ${err}`);
@@ -87,6 +91,7 @@ function App() {
 				'По данным настройкам фильтрации найдено слишком мало товаров, для вывода на страницу с настолько большим номером =)'
 			);
 			setIsNotFound(true);
+			setIsLoaderOpen(false);
 		}
 	};
 
@@ -116,6 +121,7 @@ function App() {
 					setIsPageCount(0);
 					if (Number(pageNumber) !== 1) {
 						setIsNotFound(true);
+						setIsLoaderOpen(false);
 					}
 				}
 			});
@@ -171,10 +177,12 @@ function App() {
 			} else {
 				// Параметр фильтра не соответствует его типу.
 				setIsNotFound(true);
+				setIsLoaderOpen(false);
 			}
 		} else {
 			// Что то не так с форматом записи фильтра и типа.
 			setIsNotFound(true);
+			setIsLoaderOpen(false);
 		}
 	};
 
@@ -182,6 +190,7 @@ function App() {
 
 	// Следим за изменением адресной строки и предпринимаем соответствующие действия, проверяя формат строки.
 	React.useEffect(() => {
+		setIsLoaderOpen(true);
 		const actualLocation = decodeURI(location.pathname);
 		if (actualLocation === '/') {
 			// Если мы только вошли и ничего ещё не задавали то говорим, что отображаем всё без фильтра, с первой страницы.
@@ -195,11 +204,13 @@ function App() {
 			actualizationLocation();
 		} else {
 			setIsNotFound(true);
+			setIsLoaderOpen(false);
 		}
 	}, [location.pathname]);
 
 	return (
 		<div className="App">
+			<Loader isLoaderOpen={isLoaderOpen} />
 			<Routes>
 				{!isNotFound && (
 					<Route path="/" element={<Layout />}>

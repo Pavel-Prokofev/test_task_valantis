@@ -1,0 +1,71 @@
+@keyframes rotation {
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+.loader {
+	position: fixed;
+	inset: 0;
+	background: rgba(26, 26, 26, 0.6);
+	visibility: hidden;
+	opacity: 0;
+	z-index: 20;
+	backdrop-filter: blur(7px);
+	transition:
+		visibility 0.2s,
+		opacity 0.2s linear,
+		backdrop-filter 0.2s linear;
+
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.loader_opened {
+	visibility: visible;
+	opacity: 1;
+	transition:
+		visibility 0,
+		opacity 0.2s linear,
+		backdrop-filter 0.2s linear;
+}
+
+.loader__ring {
+	position: absolute;
+	aspect-ratio: 1/1;
+	border-radius: 50%;
+}
+
+.loader__ring:nth-of-type(1) {
+	inline-size: 220px;
+	animation: rotation 3s linear infinite;
+	border-block-end: 20px solid #30308b;
+	border-block-start: 20px solid #3a3aa8;
+}
+
+.loader__ring:nth-of-type(2) {
+	inline-size: 180px;
+	animation: rotation 4s linear infinite reverse;
+	border-block-end: 20px solid #2929b8;
+	border-block-start: 20px solid #3131c8;
+}
+
+.loader__ring:nth-of-type(3) {
+	inline-size: 140px;
+	animation: rotation 5s linear infinite;
+	border-block-end: 20px solid #1d1dd2;
+	border-block-start: 20px solid #1d1dd6;
+}
+.loader__ring:nth-of-type(4) {
+	inline-size: 100px;
+	animation: rotation 6s linear infinite reverse;
+	border-block-end: 20px solid #1111ef;
+	border-block-start: 20px solid #0b0bf2;
+}
+.loader__ring:nth-of-type(5) {
+	inline-size: 60px;
+	animation: rotation 7s linear infinite;
+	border-block-end: 20px solid blue;
+	border-block-start: 20px solid blue;
+}

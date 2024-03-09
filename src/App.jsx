@@ -121,8 +121,8 @@ function App() {
 					setIsPageCount(0);
 					if (Number(pageNumber) !== 1) {
 						setIsNotFound(true);
-						setIsLoaderOpen(false);
 					}
+					setIsLoaderOpen(false);
 				}
 			});
 	};

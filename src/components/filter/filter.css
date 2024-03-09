@@ -18,6 +18,7 @@
 
 .filter__type-lable {
 	inline-size: 150px;
+	min-block-size: 87px;
 }
 
 .filter__param-lable {
@@ -31,14 +32,26 @@
 	background-color: var(--card-background-color);
 }
 
+.filter__error {
+	color: var(--error-color);
+	min-block-size: 16px;
+	font-size: 14px;
+	line-height: 16px;
+	font-weight: 300;
+}
+
 .filter__submit-button {
 	max-inline-size: 260px;
 	inline-size: 100%;
 	background-color: var(--card-background-color);
-	block-size: 71px;
+	block-size: 87px;
 	padding: 10px 40px;
 	border-radius: 15px;
 	border: none;
 	font-size: 18px;
 	font-weight: 600;
+}
+
+.filter__submit-button_disabled {
+	color: rgba(0, 0, 0, 0.3);
 }

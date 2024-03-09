@@ -32,7 +32,7 @@ function Pagination({ isPageCount = 0, lastFilterFields, isActivePage = 1 }) {
 	// Проверяем есть ли вообще что выводить
 	if (actualArrPageCount.length) {
 		return (
-			<article className="pagination">
+			<article className="pagination" aria-label="Пагинация">
 				<ul className="pagination__list">
 					{/* Если страниц меньше 10ти выводим весь список. */}
 					{actualArrPageCount.length <= 10 ? (

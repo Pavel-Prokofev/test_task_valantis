@@ -10,6 +10,7 @@
 	--color: #000;
 	--link-color: #000;
 	--link-visited-color: #4d4758;
+	--error-color: red;
 }
 
 .root {

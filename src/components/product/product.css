@@ -1,0 +1,34 @@
+.product {
+	position: relative;
+	max-inline-size: 80%;
+	margin: auto;
+	background-color: var(--card-background-color);
+	border-radius: 15px;
+	margin-block: 20px;
+}
+
+.product__img {
+	inline-size: 50%;
+	margin: 7% 10% 5%;
+	aspect-ratio: 1/1;
+}
+
+.product__text-box {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 0 15px 7%;
+	overflow: hidden;
+}
+
+.product__title {
+	margin: 0;
+}
+
+.product__link {
+	color: var(--link-color);
+	position: absolute;
+	inset-block-start: -10px;
+	inset-inline-end: 20px;
+	transform: translateY(-100%);
+}

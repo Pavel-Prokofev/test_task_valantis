@@ -1,0 +1,20 @@
+.gallery {
+	flex-grow: 1;
+	display: flex;
+	justify-content: center;
+}
+
+.gallery__list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px;
+	justify-content: center;
+}
+
+.gallery__empti-text {
+	margin: auto;
+	padding-block: 30px;
+}

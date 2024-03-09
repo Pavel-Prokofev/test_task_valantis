@@ -1,0 +1,35 @@
+/* css переменные, исходное состояние */
+* {
+	box-sizing: border-box;
+}
+
+:root {
+	--ordinary-font: 'Arial';
+	--background-color: #b8d7e6;
+	--card-background-color: #eeeae4;
+	--color: #000;
+	--link-color: #000;
+	--link-visited-color: #4d4758;
+	--error-color: red;
+}
+
+.root {
+	inline-size: 100%;
+	display: flex;
+	justify-content: center;
+	position: relative;
+}
+
+.body {
+	margin: 0;
+	inline-size: 100%;
+	font-family: var(--ordinary-font), sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	background-color: var(--background-color);
+}
+
+code {
+	font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+		monospace;
+}

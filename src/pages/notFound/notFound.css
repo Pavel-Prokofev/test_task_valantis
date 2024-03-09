@@ -1,0 +1,12 @@
+.not-found {
+	flex-grow: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+
+.not-found__title {
+	font-size: 120px;
+	margin: 30px;
+}

@@ -119,7 +119,7 @@ function Filter({ lastFilterFields, isPageCount, isActivePage }) {
 					>
 						<option value="none">Всё</option>
 						<option value="product">Название</option>
-						<option value="brand">Брэнд</option>
+						<option value="brand">Бренд</option>
 						<option value="price">Цена</option>
 					</select>
 				</label>

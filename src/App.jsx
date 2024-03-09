@@ -50,7 +50,9 @@ function App() {
 				idList.push(actualItemsIdList.current[i]);
 			}
 		} else {
+			// Перестраховка.
 			console.log('слишком мало итемов для этого номера страницы');
+			setIsNotFound(true);
 		}
 		return idList;
 	};
@@ -72,6 +74,7 @@ function App() {
 						}
 					});
 					setActualPageList(noRepetitionPage);
+					setIsNotFound(false);
 				})
 				.catch((err) => {
 					console.log(`При выполнении запрса произошла ошибка: ${err}`);
@@ -83,6 +86,7 @@ function App() {
 			console.log(
 				'По данным настройкам фильтрации найдено слишком мало товаров, для вывода на страницу с настолько большим номером =)'
 			);
+			setIsNotFound(true);
 		}
 	};
 
@@ -120,15 +124,12 @@ function App() {
 		const { filterFields, filter, filterParam, actualPageNumber } =
 			SeparationPazname(location);
 
-		console.log(filterParam);
-
 		// Добавляем в посылаемый в запрос объект поля необходимые для отображения нужной страницы.
 		returningBody.actionPage = 'get_items';
 		returningBody.pageNumber = actualPageNumber;
 
 		// Проверяем изменился ли фольтр или его параметр и определяем, что с этим делать.
 		const hasChangedFilterFields = () => {
-			setIsNotFound(false);
 			// Проверяем изменился ли фольтр или его параметр.
 			if (lastFilterFields !== filterFields || !actualItemsIdList.length) {
 				setLastFilterFields(filterFields);
@@ -188,7 +189,6 @@ function App() {
 			setIsNotFound(false);
 			actualizationLocation();
 		} else {
-			console.log('ХРЕНОТЕНЬ');
 			setIsNotFound(true);
 		}
 	}, [location.pathname]);
